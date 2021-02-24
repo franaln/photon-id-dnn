@@ -14,3 +14,11 @@ Photon ID using DNN
     * Shuffle events
 
 `python do_train_df.py`
+
+3. Training
+
+`python train.py \
+     --df_train df_train.h5 \
+     --df_val df_val.h5 \
+     --conf train_conf.json \
+     --output_dir OUTPUT`
