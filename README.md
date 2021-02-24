@@ -17,8 +17,4 @@ Photon ID using DNN
 
 3. Training
 
-`python train.py \
-     --df_train df_train.h5 \
-     --df_val df_val.h5 \
-     --conf train_conf.json \
-     --output_dir OUTPUT`
+`python train.py --df_train df_train.h5 --df_val df_val.h5 --conf train_conf.json --output_dir OUTPUT`
