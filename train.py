@@ -61,17 +61,18 @@ output_name = f'{args.output_name}_' if args.output_name else ''
 # Data generator
 # ---------------
 input_vars = [
-    'pt',
-    'eta',
-    'rhad_mixed',
-    'reta',
-    'rphi',
-    'weta2',
-    'eratio',
-    'deltae',
-    'weta1',
-    'wtots1',
-    'fracs1',
+    'n_pt',
+    'n_eta',
+    'is_conv',
+    'n_rhad_mixed',
+    'n_reta',
+    'n_rphi',
+    'n_weta2',
+    'n_eratio',
+    'n_deltae',
+    'n_weta1',
+    'n_wtots1',
+    'n_fracs1',
 ]
 
 cols_to_read = ['truth_label', 'rw',] + input_vars

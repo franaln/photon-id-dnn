@@ -17,8 +17,8 @@ shower_shapes = [
     'eratio', 'deltae', 'weta1', 'wtots1', 'fracs1',
 ]
 
-variables_train = [ 'event', 'truth_label', 'weight', 'pt', 'eta', 'is_conv', ] + shower_shapes
-variables_test  = variables_train + [ 'is_looseprime4', 'is_isoloose', 'is_isotight', 'iso_calo', 'iso_track', 'mu', 'is_tight' ]
+variables_train = [ 'event', 'truth_label', 'weight', 'pt', 'eta', 'mu', 'is_conv', 'iso_calo', 'iso_track' ] + shower_shapes
+variables_test  = variables_train + [ 'is_looseprime4', 'is_isoloose', 'is_isotight',  'is_tight' ]
 
 int_cols = ('event', 'is_conv', 'truth_label', 'is_loose', 'is_tight', 'is_looseprime4', 'is_isoloose', 'is_isotight')
 
@@ -39,8 +39,10 @@ mini_files_test = [
 # -------------
 
 for sample in ('train', 'val', 'test'):
+
+    is_train_val = sample != 'test'
     
-    if sample in ('train', 'val'):
+    if is_train_val:
         columns_to_read = variables_train
         mini_files = mini_files_train
     else:
@@ -77,7 +79,7 @@ for sample in ('train', 'val', 'test'):
         if sample == 'train':
             df = df.loc[(df['event'] % 4 < 2) & (df['pt'] < 500)]
         elif sample == 'val':
-            df = df.loc[df['event'] % 4 == 2]
+            df = df.loc[(df['event'] % 4 == 2) & (df['pt'] < 500)]
         elif sample == 'test':
             df = df.loc[df['event'] % 4 == 3]
 
@@ -90,7 +92,7 @@ for sample in ('train', 'val', 'test'):
 
 
     # remove shower shapes outliers (FIX?)
-    if sample == 'train':
+    if is_train_val:
         for ss in shower_shapes:
             df = df.drop(df.loc[df[ss] < -10].index)
             df = df.drop(df.loc[df[ss] >  10].index)
@@ -98,12 +100,8 @@ for sample in ('train', 'val', 'test'):
     #
     # Re-weighting: weight fakes to match signal in pt/eta bins for train/val sample
     #
-    if sample == 'train' or sample == 'val':
-        if sample == 'train':
-            pt_bins = [25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 350, 400, 450, 500]
-        else:
-            pt_bins = [25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 350, 400, 450, 500, 10000]
-
+    if is_train_val:
+        pt_bins = [25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 350, 400, 450, 500]
         eta_bins = [0, 0.6, 0.8, 1.2, 1.37, 1.52, 1.81, 2.01, 2.37]
     
         h_pt_eta_s = np.histogram2d(df.loc[df['truth_label'] == 1,'pt'], np.abs(df.loc[df['truth_label'] == 1,'eta']), bins=(pt_bins, eta_bins), weights=df.loc[df['truth_label'] == 1,'weight'])[0]
@@ -157,8 +155,8 @@ for sample in ('train', 'val', 'test'):
     df = df.sample(frac=1).reset_index(drop=True)
 
     # Save
-    print('Saving df to df_%s.h5' % sample) 
-    df.to_hdf(f'{output_dir}/df_%s.h5' % sample, 'df', format='table')
+    print(f'Saving df to {output_dir}/df_{sample}.h5') 
+    df.to_hdf(f'{output_dir}/df_{sample}.h5', 'df', format='table')
 
 
 
