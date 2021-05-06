@@ -9,8 +9,10 @@ from sklearn.preprocessing import StandardScaler
 # -------------
 
 mini_dir = '/mnt/R5/ATLAS/PhotonID/SP_mini/'
-output_dir = 'data/'
-scale_path = 'data/scale_conf.json'
+output_dir = 'data/apr29/'
+scale_path = 'data/apr29/scale_conf.json'
+
+samples = ('train', 'val', 'test')
 
 shower_shapes = [
     'rhad_mixed', 'reta', 'rphi', 'weta2',
@@ -18,14 +20,15 @@ shower_shapes = [
 ]
 
 variables = [ 
-    'event', 
-    'truth_label', 
-    'weight', 
-    'pt', 'eta', 'mu', 'is_conv', 
-    'iso_calo', 'iso_track', 'is_looseprime4', 'is_isoloose', 'is_isotight',  
-    'is_tight' ] + shower_shapes
+    'event', 'mcid', 'truth_label',  'weight', 
+    'pt', 'eta', 'mu', 'is_conv', 'conv_type',
+    'iso_calo20', 'iso_calo40', 'iso_track',  'is_isoloose', 'is_isotight', 'is_isotightcaloonly',
+    'is_tight', 'is_looseprime4',
+    'f1',
+    ##'conv_radius', 'E1E2', 'maxEcell_E', 'maxEcell_time',  'e277',
+] + shower_shapes
 
-int_cols = ('event', 'is_conv', 'truth_label', 'is_loose', 'is_tight', 'is_looseprime4', 'is_isoloose', 'is_isotight')
+int_cols = ('event', 'is_conv', 'truth_label', 'is_loose', 'is_tight', 'is_looseprime4', 'is_isoloose', 'is_isotight', 'is_isotightcaloonly', 'conv_type')
 
 mini_files_train = [
     'PyPt17_inf_mc16d_p3931_Rel21_AB21.2.94_v0_mini.root',
@@ -40,10 +43,16 @@ mini_files_test = [
     'PyPt17_inf_mc16e_p3931_Rel21_AB21.2.94_v0_mini.root',
     'Py8_jetjet_mc16e_p3929_Rel21_AB21.2.94_v0_mini.root',
 ]
-        
+
+selection = {
+    'train': '(event % 4 < 2)  & (pt < 250) & (f1>0.005)',
+    'val':   '(event % 4 == 2) & (pt < 250) & (f1>0.005)',
+    'test':  '(event % 4 == 3) & (f1>0.005)',
+}
+
 # -------------
 
-for sample in ('train', 'val', 'test'):
+for sample in samples:
 
     is_train_val = sample != 'test'
     
@@ -79,12 +88,7 @@ for sample in ('train', 'val', 'test'):
         df = pd.DataFrame(data=data, columns=columns)
         df = df.astype(type_dict)
 
-        if sample == 'train':
-            df = df.loc[(df['event'] % 4 < 2) & (df['pt'] < 500)]
-        elif sample == 'val':
-            df = df.loc[(df['event'] % 4 == 2) & (df['pt'] < 500)]
-        elif sample == 'test':
-            df = df.loc[df['event'] % 4 == 3]
+        df = df.query(selection[sample])
 
         dfs.append(df)
 
@@ -104,7 +108,7 @@ for sample in ('train', 'val', 'test'):
     # Re-weighting: weight fakes to match signal in pt/eta bins for train/val sample
     #
     if is_train_val:
-        pt_bins = [25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 350, 400, 450, 500]
+        pt_bins = [25, 50, 75, 100, 125, 150, 175, 200, 225, 250,] ## 275, 300, 350, 400,] ## 450, 500]
         eta_bins = [0, 0.6, 0.8, 1.2, 1.37, 1.52, 1.81, 2.01, 2.37]
     
         h_pt_eta_s = np.histogram2d(df.loc[df['truth_label'] == 1,'pt'], np.abs(df.loc[df['truth_label'] == 1,'eta']), bins=(pt_bins, eta_bins), weights=df.loc[df['truth_label'] == 1,'weight'])[0]
@@ -124,7 +128,7 @@ for sample in ('train', 'val', 'test'):
 
 
         # Add scaled columns
-        df['n_pt'] = df['pt'] / 500.
+        df['n_pt'] = df['pt'] / 250.
         df['n_eta'] = df['eta'] / 2.37
 
         if sample == 'train':
