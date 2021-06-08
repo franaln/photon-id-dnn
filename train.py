@@ -76,7 +76,9 @@ input_vars = [
     'n_fracs1',
 ]
 
-cols_to_read = ['truth_label', 'rw', 'is_conv'] + input_vars
+weight_name = 'rw'
+
+cols_to_read = ['truth_label', weight_name, 'is_conv'] + input_vars
 
 def get_steps(df_path, batch_size):
     df = pandas.read_hdf(df_path, columns=['event'])
@@ -95,7 +97,7 @@ def data_generator(df_path, batch_size, steps):
 
         df = pandas.read_hdf(df_path, columns=cols_to_read, start=start_row, stop=stop_row)
 
-        yield (df[input_vars].to_numpy(), df['truth_label'].to_numpy(), df['rw'].to_numpy())
+        yield (df[input_vars].to_numpy(), df['truth_label'].to_numpy(), df[weight_name].to_numpy())
 
 
 if use_generator:
@@ -110,16 +112,16 @@ else:
 
     if args.selection is not None:
         df_train = df_train.query(args.selection)
-        df_train = df_train.query(args.selection)
+        df_val   = df_val.query(args.selection)
 
 
     x_train = df_train[input_vars].to_numpy()
     y_train = df_train['truth_label'].to_numpy()
-    w_train = df_train['rw'].to_numpy()
+    w_train = df_train[weight_name].to_numpy()
 
     x_val = df_val[input_vars].to_numpy()
     y_val = df_val['truth_label'].to_numpy()
-    w_val = df_val['rw'].to_numpy()
+    w_val = df_val[weight_name].to_numpy()
     
 
 

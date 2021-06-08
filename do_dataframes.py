@@ -9,8 +9,8 @@ from sklearn.preprocessing import StandardScaler
 # -------------
 
 mini_dir = '/mnt/R5/ATLAS/PhotonID/SP_mini/'
-output_dir = 'data/apr29/'
-scale_path = 'data/apr29/scale_conf.json'
+output_dir = 'data/'
+scale_path = 'data/scale_conf.json'
 
 samples = ('train', 'val', 'test')
 
@@ -32,7 +32,9 @@ int_cols = ('event', 'is_conv', 'truth_label', 'is_loose', 'is_tight', 'is_loose
 
 mini_files_train = [
     'PyPt17_inf_mc16d_p3931_Rel21_AB21.2.94_v0_mini.root',
+    'Py8_jetjet_mc16a_p3929_Rel21_AB21.2.94_v0_mini.root',
     'Py8_jetjet_mc16d_p3929_Rel21_AB21.2.94_v0_mini.root',
+    'Py8_jetjet_mc16e_p3929_Rel21_AB21.2.94_v0_mini.root',
 ]
 
 mini_files_test = [
@@ -101,6 +103,8 @@ for sample in samples:
     # remove shower shapes outliers (FIX?)
     if is_train_val:
         for ss in shower_shapes:
+            n = len(df.loc[(df[ss] < -10)].index) + len(df.loc[(df[ss] >  10)].index)
+            print(f'Removing {n} outliers events for {ss}') 
             df = df.drop(df.loc[df[ss] < -10].index)
             df = df.drop(df.loc[df[ss] >  10].index)
 
@@ -123,7 +127,7 @@ for sample in samples:
 
         # normalize weights to have mean=1
         df['rw'] /= np.mean(df['rw'])
-    
+
         df = df.drop(columns=['pt_bin', 'eta_bin'])
 
 
@@ -135,14 +139,14 @@ for sample in samples:
 
             w = df['rw'].to_numpy()
             scale_dict = dict()
-            for iss, ss in enumerate(shower_shapes):
+            for iss, ss in enumerate(shower_shapes+['n_pt', 'n_eta']):
                 
                 X = df[ss].to_numpy().reshape(-1, 1)
                 
                 scaler = StandardScaler()
                 scaler.fit(X, None, w)
 
-                t_mean, t_std = scaler.mean_[0], scaler.scale_[0]
+                t_mean, t_std = round(scaler.mean_[0], 4), round(scaler.scale_[0], 4)
                 scale_dict[ss] = (t_mean, t_std)
 
             with open(scale_path, 'w') as fp:
@@ -152,9 +156,9 @@ for sample in samples:
         with open(scale_path) as f:
             scale_dict = json.load(f)
 
-        for ss in shower_shapes:
+        for ss in shower_shapes+['n_pt', 'n_eta']:
             mean, std = scale_dict[ss]
-            print(f'Scaling var = {ss} with mean = {mean}, std = {std}')
+            print(f'Scaling var {ss} with mean = {mean:.4f}, std = {std:.4f}')
             df[f'n_{ss}'] = (df[ss] - mean) / std
 
 
