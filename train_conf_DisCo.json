@@ -1,0 +1,12 @@
+{
+    "layers": 6,
+    "neurons": 256,
+    "activation": "relu",
+    "optimizer": "adam",
+    "lr": 0.0001,
+    "batch_size": 16384,
+    "epochs": 300,
+    "dropout": 0.3,
+    "disco_alpha": 25,
+    "disco_var": "iso_calo20"
+}

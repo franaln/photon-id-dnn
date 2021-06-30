@@ -5,15 +5,15 @@ Photon ID using DNN
 
 `python do_mini_ntuples.py`
 
-2. Create the input dataframe for training (and validation) from mini ntuples
+2. Create the dataframes for training, validation and test) from the mini ntuples
 
-    * Split train/val samples using event number
+    * Split train/val/test samples using event number 
     * Remove shower shape outliers
-    * Compute weights to match fakes to signal in eta/pt
+    * Compute weights to reweight fakes to match signal events in eta/pt
     * Scale input variables using StandardScaler from sklearn
     * Shuffle events
 
-`python do_train_df.py`
+`python do_dataframes.py`
 
 3. Training
 
